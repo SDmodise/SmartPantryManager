@@ -49,6 +49,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "quantity REAL NOT NULL, " +
                 "unit TEXT NOT NULL, " +
                 "FOREIGN KEY(recipe_id) REFERENCES recipes(id) ON DELETE CASCADE)");
+        seedRecipes(db);
     }
 
     @Override
@@ -188,5 +189,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "1. Toast the bread.\n2. Spread with peanut butter.\n3. Top with sliced banana.",
                 new Object[][]{{"bread", 2.0, "pcs"}, {"peanut butter", 2.0, "tbsp"}, {"banana", 1.0, "pcs"}});
     }
+    // ---------- RECIPE READ ----------
+    public List<Recipe> getAllRecipes() {
+        List<Recipe> list = new ArrayList<>();
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT id, name, steps FROM recipes ORDER BY name", null);
+        while (c.moveToNext()) {
+            Recipe r = new Recipe(c.getLong(0), c.getString(1), c.getString(2));
+            r.setIngredients(getIngredientsForRecipe(r.getId()));
+            list.add(r);
+        }
+        c.close();
+        return list;
+    }
+
+    public Recipe getRecipeById(long id) {
+        Recipe r = null;
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT id, name, steps FROM recipes WHERE id = ?",
+                new String[]{String.valueOf(id)});
+        if (c.moveToFirst()) {
+            r = new Recipe(c.getLong(0), c.getString(1), c.getString(2));
+            r.setIngredients(getIngredientsForRecipe(id));
+        }
+        c.close();
+        return r;
+    }
+
+    public List<Ingredient> getIngredientsForRecipe(long recipeId) {
+        List<Ingredient> list = new ArrayList<>();
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT name, quantity, unit FROM recipe_ingredients WHERE recipe_id = ?",
+                new String[]{String.valueOf(recipeId)});
+        while (c.moveToNext()) {
+            list.add(new Ingredient(c.getString(0), c.getDouble(1), c.getString(2)));
+        }
+        c.close();
+        return list;
+    }
+
 
 }
