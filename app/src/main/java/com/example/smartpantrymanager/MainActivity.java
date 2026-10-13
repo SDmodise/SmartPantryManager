@@ -1,79 +1,82 @@
 package com.example.smartpantrymanager;
 
-import android.view.LayoutInflater;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.smartpantrymanager.R;
+import com.example.smartpantrymanager.adapter.PantryAdapter;
+import com.example.smartpantrymanager.database.DatabaseHelper;
 import com.example.smartpantrymanager.model.PantryItem;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
-public class PantryAdapter extends RecyclerView.Adapter<PantryAdapter.ViewHolder> {
+public class MainActivity extends AppCompatActivity implements PantryAdapter.OnItemActionListener {
 
-    public interface OnItemActionListener {
-        void onEdit(PantryItem item);
-        void onDelete(PantryItem item);
-    }
-
-    private List<PantryItem> items;
-    private final OnItemActionListener listener;
-
-    public PantryAdapter(List<PantryItem> items, OnItemActionListener listener) {
-        this.items = items;
-        this.listener = listener;
-    }
-
-    public void setItems(List<PantryItem> newItems) {
-        this.items = newItems;
-        notifyDataSetChanged();
-    }
-
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_pantry, parent, false);
-        return new ViewHolder(v);
-    }
+    private DatabaseHelper dbHelper;
+    private PantryAdapter adapter;
+    private TextView tvEmpty;
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        PantryItem item = items.get(position);
-        holder.tvName.setText(item.getName());
-        holder.tvQuantity.setText(item.getQuantity() + " " + item.getUnit());
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        String expiry = item.getExpiryDate();
-        if (expiry == null || expiry.isEmpty()) {
-            holder.tvExpiry.setText("No expiry date");
-        } else {
-            holder.tvExpiry.setText("Expires: " + expiry);
-        }
+        dbHelper = new DatabaseHelper(this);
+        RecyclerView recyclerView = findViewById(R.id.recyclerPantry);
+        tvEmpty = findViewById(R.id.tvEmpty);
+        FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
 
-        holder.itemView.setOnClickListener(v -> listener.onEdit(item));
-        holder.btnDelete.setOnClickListener(v -> listener.onDelete(item));
+        adapter = new PantryAdapter(dbHelper.getAllPantryItems(), this);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+        fabAdd.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, AddEditItemActivity.class)));
+    }
+
+    // Runs every time we come back to this screen, so the list is always up to date
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshList();
+    }
+
+    private void refreshList() {
+        List<PantryItem> items = dbHelper.getAllPantryItems();
+        adapter.setItems(items);
+        tvEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     @Override
-    public int getItemCount() {
-        return items.size();
+    public void onEdit(PantryItem item) {
+        Intent intent = new Intent(this, AddEditItemActivity.class);
+        intent.putExtra(AddEditItemActivity.EXTRA_ID, item.getId());
+        intent.putExtra(AddEditItemActivity.EXTRA_NAME, item.getName());
+        intent.putExtra(AddEditItemActivity.EXTRA_QUANTITY, item.getQuantity());
+        intent.putExtra(AddEditItemActivity.EXTRA_UNIT, item.getUnit());
+        intent.putExtra(AddEditItemActivity.EXTRA_EXPIRY, item.getExpiryDate());
+        startActivity(intent);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvQuantity, tvExpiry;
-        Button btnDelete;
-
-        ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvName = itemView.findViewById(R.id.tvItemName);
-            tvQuantity = itemView.findViewById(R.id.tvItemQuantity);
-            tvExpiry = itemView.findViewById(R.id.tvItemExpiry);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
-        }
+    @Override
+    public void onDelete(PantryItem item) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete ingredient")
+                .setMessage("Remove " + item.getName() + " from your pantry?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    dbHelper.deletePantryItem(item.getId());
+                    refreshList();
+                    Toast.makeText(this, "Ingredient deleted", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }
