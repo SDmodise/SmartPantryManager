@@ -24,6 +24,14 @@
         <activity
             android:name=".AddEditItemActivity"
             android:exported="false" />
+        <activity
+            android:name=".SuggestedRecipesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RecipeDetailActivity"
+            android:exported="false" />
+        <activity android:name=".SettingsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

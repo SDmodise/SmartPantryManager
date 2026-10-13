@@ -40,7 +40,12 @@ public class MainActivity extends AppCompatActivity implements PantryAdapter.OnI
 
         fabAdd.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, AddEditItemActivity.class)));
+
+        findViewById(R.id.btnSuggested).setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, SuggestedRecipesActivity.class)));
     }
+
+
 
     // Runs every time we come back to this screen, so the list is always up to date
     @Override
