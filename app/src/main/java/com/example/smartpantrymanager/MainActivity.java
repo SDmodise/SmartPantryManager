@@ -1,6 +1,7 @@
 package com.example.smartpantrymanager;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -17,7 +18,11 @@ import com.example.smartpantrymanager.model.PantryItem;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.smartpantrymanager.util.NavHelper;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements PantryAdapter.OnItemActionListener {
 
@@ -42,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements PantryAdapter.OnI
         fabAdd.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, AddEditItemActivity.class)));
          NavHelper.setup(this, R.id.nav_pantry);
+
+         checkExpiringItems(dbHelper.getAllPantryItems());
     }
 
 
@@ -82,5 +89,37 @@ public class MainActivity extends AppCompatActivity implements PantryAdapter.OnI
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    // If the Settings toggle is on, warn about items expiring within 3 days (or already expired)
+    private void checkExpiringItems(List<PantryItem> items) {
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS, MODE_PRIVATE);
+        if (!prefs.getBoolean(SettingsActivity.KEY_EXPIRY_ALERTS, true)) {
+            return;
+        }
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        long limit = System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000;
+        int count = 0;
+
+        for (PantryItem item : items) {
+            String expiry = item.getExpiryDate();
+            if (expiry == null || expiry.isEmpty()) {
+                continue;
+            }
+            try {
+                Date date = format.parse(expiry);
+                if (date != null && date.getTime() <= limit) {
+                    count++;
+                }
+            } catch (ParseException ignored) {
+                // skip items with a badly formatted date
+            }
+        }
+
+        if (count > 0) {
+            Toast.makeText(this, count + " item(s) expiring soon or expired",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 }
