@@ -9,7 +9,7 @@ import com.example.smartpantrymanager.SettingsActivity;
 import com.example.smartpantrymanager.SuggestedRecipesActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-/** Connects the bottom navigation bar to the three main screens using Intents. */
+// Connects the bottom navigation bar to the three main screens using Intents.
 public class NavHelper {
 
     public static void setup(Activity activity, int selectedItemId) {
@@ -34,7 +34,6 @@ public class NavHelper {
             Intent intent = new Intent(activity, target);
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             activity.startActivity(intent);
-            activity.overridePendingTransition(0, 0);
             return true;
         });
     }

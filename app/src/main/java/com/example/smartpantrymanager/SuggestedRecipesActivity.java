@@ -3,7 +3,6 @@ package com.example.smartpantrymanager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +14,7 @@ import com.example.smartpantrymanager.database.DatabaseHelper;
 import com.example.smartpantrymanager.model.PantryItem;
 import com.example.smartpantrymanager.model.Recipe;
 import com.example.smartpantrymanager.util.RecipeMatcher;
+import com.example.smartpantrymanager.util.NavHelper;
 
 import java.util.List;
 
@@ -31,10 +31,10 @@ public class SuggestedRecipesActivity extends AppCompatActivity
 
         recyclerView = findViewById(R.id.recyclerSuggested);
         tvNoMatches = findViewById(R.id.tvNoMatches);
-        Button btnBack = findViewById(R.id.btnBack);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        btnBack.setOnClickListener(v -> finish());
+
+        NavHelper.setup(this, R.id.nav_suggested);
     }
 
     // Re-run the matching each time the screen appears, so it reflects the current pantry

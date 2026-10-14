@@ -15,6 +15,7 @@ import com.example.smartpantrymanager.adapter.PantryAdapter;
 import com.example.smartpantrymanager.database.DatabaseHelper;
 import com.example.smartpantrymanager.model.PantryItem;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.example.smartpantrymanager.util.NavHelper;
 
 import java.util.List;
 
@@ -40,9 +41,7 @@ public class MainActivity extends AppCompatActivity implements PantryAdapter.OnI
 
         fabAdd.setOnClickListener(v ->
                 startActivity(new Intent(MainActivity.this, AddEditItemActivity.class)));
-
-        findViewById(R.id.btnSuggested).setOnClickListener(v ->
-                startActivity(new Intent(MainActivity.this, SuggestedRecipesActivity.class)));
+         NavHelper.setup(this, R.id.nav_pantry);
     }
 
 

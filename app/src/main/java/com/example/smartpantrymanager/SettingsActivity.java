@@ -1,5 +1,6 @@
 package com.example.smartpantrymanager;
 
+import com.example.smartpantrymanager.util.NavHelper;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -23,5 +24,6 @@ public class SettingsActivity extends AppCompatActivity {
         switchExpiry.setChecked(prefs.getBoolean(KEY_EXPIRY_ALERTS, true));
         switchExpiry.setOnCheckedChangeListener((button, isChecked) ->
                 prefs.edit().putBoolean(KEY_EXPIRY_ALERTS, isChecked).apply());
+        NavHelper.setup(this, R.id.nav_settings);
     }
 }
